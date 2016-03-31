@@ -1,0 +1,32 @@
+{
+  "name": "git-branch-select",
+  "version": "1.0.0",
+  "description": "Interactive git branch selection",
+  "author": "Jonas Hermsmeier <jhermsmeier@gmail.com> (https://jhermsmeier.de/)",
+  "license": "MIT",
+  "keywords": [
+    "git",
+    "branch",
+    "select",
+    "list"
+  ],
+  "main": "index.js",
+  "dependencies": {
+    "inquirer": "~0.12.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "git-branch-select": "index.js"
+  },
+  "homepage": "https://github.com/jhermsmeier/git-branch-select",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jhermsmeier/git-branch-select.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jhermsmeier/git-branch-select/issues"
+  }
+}
