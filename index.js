@@ -18,14 +18,16 @@ exec( 'git branch --no-color', function( error, stdout, stderr ) {
     lines[0] = lines[0].replace( /^\*\s+/, '' )
   }
 
-  inquirer.prompt([{
+  var prompt = inquirer.prompt([{
     type: 'list',
     name: 'branch',
     message: 'Select branch',
     default: lines[0],
     choices: lines
-  }], function( results ) {
-    exec( `git checkout '${results.branch}'`, {
+  }])
+
+  prompt.then( function( results ) {
+    exec( "git checkout '" + results.branch + "'", {
       cwd: process.cwd()
     }, function( error, stdout, stderr ) {
 
