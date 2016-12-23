@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 var exec = require( 'child_process' ).exec
+var cmd = require( 'command-join' )
 var List = require( 'prompt-list' )
 var lines = []
 
@@ -27,7 +28,7 @@ exec( 'git branch --no-color', function( error, stdout, stderr ) {
   })
 
   prompt.ask( function( branch ) {
-    exec( "git checkout \"" + branch + "\"", {
+    exec( cmd([ 'git', 'checkout', branch ]), {
       cwd: process.cwd()
     }, function( error, stdout, stderr ) {
 
@@ -39,7 +40,7 @@ exec( 'git branch --no-color', function( error, stdout, stderr ) {
 
       // Print status after branch change manually,
       // as `git checkout` doesn't do color output
-      exec( 'git status -sb', function( _, stdout, stderr ) {
+      exec( cmd([ 'git', 'status', '-sb' ]), function( _, stdout, stderr ) {
 
         process.stdout.write( '\n' )
         process.stdout.write( stdout )
