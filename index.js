@@ -27,7 +27,7 @@ exec( 'git branch --no-color', function( error, stdout, stderr ) {
   })
 
   prompt.ask( function( branch ) {
-    exec( "git checkout '" + branch + "'", {
+    exec( "git checkout \"" + branch + "\"", {
       cwd: process.cwd()
     }, function( error, stdout, stderr ) {
 
