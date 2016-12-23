@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 var exec = require( 'child_process' ).exec
-var inquirer = require( 'inquirer' )
+var List = require( 'prompt-list' )
 var lines = []
 
 exec( 'git branch --no-color', function( error, stdout, stderr ) {
@@ -18,16 +18,16 @@ exec( 'git branch --no-color', function( error, stdout, stderr ) {
     lines[0] = lines[0].replace( /^\*\s+/, '' )
   }
 
-  var prompt = inquirer.prompt([{
+  var prompt = new List({
     type: 'list',
     name: 'branch',
     message: 'Select branch',
     default: lines[0],
     choices: lines
-  }])
+  })
 
-  prompt.then( function( results ) {
-    exec( "git checkout \"" + results.branch + "\"", {
+  prompt.ask( function( branch ) {
+    exec( "git checkout \"" + branch + "\"", {
       cwd: process.cwd()
     }, function( error, stdout, stderr ) {
 
