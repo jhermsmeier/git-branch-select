@@ -1,6 +1,6 @@
 {
   "name": "git-branch-select",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Interactive git branch selection",
   "author": "Jonas Hermsmeier <jhermsmeier@gmail.com> (https://jhermsmeier.de)",
   "license": "MIT",
