@@ -12,8 +12,8 @@
   ],
   "main": "index.js",
   "dependencies": {
-    "command-join": "~1.1.1",
-    "prompt-list": "~0.1.1"
+    "command-join": "~2.0.0",
+    "prompt-list": "~0.1.2"
   },
   "devDependencies": {},
   "scripts": {
