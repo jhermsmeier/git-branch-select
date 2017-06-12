@@ -16,7 +16,7 @@
     "prompt-list": "^2.0.1"
   },
   "bin": {
-    "git-branch-select": "index.js"
+    "git-branch-select": "bin/git-branch-select"
   },
   "homepage": "https://github.com/jhermsmeier/git-branch-select",
   "repository": {
