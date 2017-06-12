@@ -12,12 +12,8 @@
   ],
   "main": "index.js",
   "dependencies": {
-    "command-join": "~2.0.0",
-    "prompt-list": "~0.1.2"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "command-join": "^2.0.0",
+    "prompt-list": "^2.0.1"
   },
   "bin": {
     "git-branch-select": "index.js"
