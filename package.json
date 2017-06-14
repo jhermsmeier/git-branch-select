@@ -13,7 +13,7 @@
   "main": "index.js",
   "dependencies": {
     "command-join": "^2.0.0",
-    "prompt-list": "^2.0.1"
+    "prompt-list": "^1.0.0"
   },
   "bin": {
     "git-branch-select": "bin/git-branch-select"
