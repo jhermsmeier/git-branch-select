@@ -2,22 +2,26 @@
 var exec = require( 'child_process' ).exec
 var cmd = require( 'command-join' )
 var List = require( 'prompt-list' )
-var lines = []
 
-exec( 'git branch --no-color', function( error, stdout, stderr ) {
+exec( 'git branch --no-color --sort=-committerdate', function( error, stdout, stderr ) {
 
-  lines = stdout.replace( /^\s+|\s+$/g, '' ).split( /\r?\n/g )
-    .map( function( line ) {
-      return line.replace( /^\s+|\s+$/g, '' )
+  var currentBranchIndex = 0
+  var lines = stdout.replace( /^\s+|\s+$/g, '' ).split( /\r?\n/g )
+    .filter( function( line ) {
+      return !/([^\/]+)\/HEAD\s+->/.test( line )
     })
-    .sort( function( a, b ) {
-      if( a.indexOf( '*' ) === 0 ) return -1
-      return a.localeCompare( b )
+    .map( function( line, i ) {
+      line = line.replace( /^\s+|\s+$/g, '' )
+      // Strip the active branch indicator
+      if( /^\*\s+/.test( line ) ) {
+        line = line.replace( /^\*\s+/, '' )
+        currentBranchIndex = i
+      }
+      return line
     })
 
-  if( lines.length ) {
-    lines[0] = lines[0].replace( /^\*\s+/, '' )
-  }
+  // Put the current branch up top
+  lines.unshift( lines.splice( currentBranchIndex, 1 )[0] )
 
   var prompt = new List({
     type: 'list',
