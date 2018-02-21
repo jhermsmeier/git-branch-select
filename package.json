@@ -14,7 +14,7 @@
   "dependencies": {
     "cli-cursor": "^2.1.0",
     "command-join": "^2.0.0",
-    "prompt-list": "^1.0.0"
+    "prompt-list": "^3.1.2"
   },
   "bin": {
     "git-branch-select": "bin/git-branch-select"
