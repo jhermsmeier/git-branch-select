@@ -79,7 +79,14 @@ exec( 'git branch --no-color --sort=-committerdate', function( error, stdout, st
 
   cliCursor.hide()
 
-  ask( 'Select a branch:', suggest )
-    .once( 'submit', checkout )
+  function prompt() {
+    ask( 'Select a branch:', suggest )
+      .once( 'submit', ( branch ) => {
+        if( !branch ) return prompt()
+        checkout( branch )
+      })
+  }
+
+  prompt()
 
 })
