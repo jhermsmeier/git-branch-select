@@ -13,6 +13,14 @@ function exitHandler() {
 }
 
 function checkout( branch ) {
+
+  if(!branch) {
+    process.stdout.write( '\n' )
+    process.stdout.write( 'No such branch' )
+    process.stdout.write( '\n' )
+    process.exit(1)
+  }
+
   exec( cmd([ 'git', 'checkout', branch ]), {
     cwd: process.cwd()
   }, function( error, stdout, stderr ) {
