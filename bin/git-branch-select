@@ -2,7 +2,7 @@
 var exec = require( 'child_process' ).exec
 var cliCursor = require('cli-cursor')
 var cmd = require( 'command-join' )
-var ask = require( 'cli-autocomplete' )
+var prompts = require( 'prompts' )
 
 // Catches ctrl+c & exit events
 process.on('SIGINT', exitHandler)
@@ -22,7 +22,8 @@ function checkout( branch ) {
   }
 
   exec( cmd([ 'git', 'checkout', branch ]), {
-    cwd: process.cwd()
+    cwd: process.cwd(),
+    env: process.env,
   }, function( error, stdout, stderr ) {
 
     // Only write out the most important part
@@ -33,7 +34,10 @@ function checkout( branch ) {
 
     // Print status after branch change manually,
     // as `git checkout` doesn't do color output
-    exec( cmd([ 'git', 'status', '-sb' ]), function( _, stdout, stderr ) {
+    exec( cmd([ 'git', 'status', '-sb' ]), {
+      cwd: process.cwd(),
+      env: process.env,
+    }, function( _, stdout, stderr ) {
 
       process.stdout.write( '\n' )
       process.stdout.write( stdout )
@@ -77,14 +81,19 @@ exec( 'git branch --no-color --sort=-committerdate', function( error, stdout, st
     return Promise.resolve( results )
   }
 
-  cliCursor.hide()
-
   function prompt() {
-    ask( 'Select a branch:', suggest )
-      .once( 'submit', ( branch ) => {
-        if( !branch ) return prompt()
-        checkout( branch )
-      })
+    prompts([{
+      type: 'autocomplete',
+      name: 'value',
+      message: 'Select a branch:',
+      limit: Infinity,
+      choices: branches,
+      suggest: suggest,
+    }]).then(( result ) => {
+      if( result.value ) {
+        checkout( result.value )
+      }
+    })
   }
 
   prompt()

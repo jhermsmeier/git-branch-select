@@ -12,9 +12,9 @@
   ],
   "main": "index.js",
   "dependencies": {
-    "cli-autocomplete": "^0.4.1",
     "cli-cursor": "^2.1.0",
-    "command-join": "^2.0.0"
+    "command-join": "^2.0.0",
+    "prompts": "^0.1.8"
   },
   "bin": {
     "git-branch-select": "bin/git-branch-select"
