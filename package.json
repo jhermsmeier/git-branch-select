@@ -1,6 +1,6 @@
 {
   "name": "git-branch-select",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Git plugin for interactive branch listing, selection & checkout",
   "author": "Jonas Hermsmeier <jhermsmeier@gmail.com> (https://jhermsmeier.de)",
   "license": "MIT",
