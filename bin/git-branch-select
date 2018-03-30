@@ -3,6 +3,7 @@ var exec = require( 'child_process' ).exec
 var cliCursor = require('cli-cursor')
 var cmd = require( 'command-join' )
 var prompts = require( 'prompts' )
+var Fuse = require( 'fuse.js' )
 
 // Catches ctrl+c & exit events
 process.on('SIGINT', exitHandler)
@@ -74,10 +75,15 @@ exec( 'git branch --no-color --sort=-committerdate', function( error, stdout, st
     return { value: branch, title: `  ${branch}` }
   })
 
+  var fuse = new Fuse( branches, {
+    shouldSort: true,
+    findAllMatches: true,
+    minMatchCharLength: 1,
+    keys: [ 'value' ],
+  })
+
   function suggest( input ) {
-    var results = branches.filter(( branch ) => {
-      return ~branch.value.indexOf( input )
-    })
+    var results = input ? fuse.search( input ) : branches
     return Promise.resolve( results )
   }
 
