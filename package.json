@@ -15,7 +15,7 @@
     "cli-cursor": "^2.1.0",
     "command-join": "^2.0.0",
     "fuse.js": "^3.2.0",
-    "prompts": "^0.1.8"
+    "prompts": "^1.1.1"
   },
   "bin": {
     "git-branch-select": "bin/git-branch-select"
