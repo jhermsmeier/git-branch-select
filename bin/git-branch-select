@@ -2,8 +2,9 @@
 var exec = require( 'child_process' ).exec
 var cliCursor = require('cli-cursor')
 var cmd = require( 'command-join' )
-var prompts = require( 'prompts' )
+var elements = require( 'prompts/lib/elements' )
 var Fuse = require( 'fuse.js' )
+var argv = process.argv.slice( 2 )
 
 // Catches ctrl+c & exit events
 process.on('SIGINT', exitHandler)
@@ -88,18 +89,24 @@ exec( 'git branch --no-color --sort=-committerdate', function( error, stdout, st
   }
 
   function prompt() {
-    prompts([{
+
+    var input = new elements.AutocompletePrompt({
       type: 'autocomplete',
       name: 'value',
       message: 'Select a branch:',
       limit: Infinity,
       choices: branches,
       suggest: suggest,
-    }]).then(( result ) => {
-      if( result.value ) {
-        checkout( result.value )
-      }
     })
+
+    // Override initial input & re-render,
+    // as there's no option to set the initial input value
+    input.input = argv[0] || ''
+    input.cursor = input.input.length
+    input.complete( input.render )
+
+    input.on( 'submit', checkout )
+
   }
 
   prompt()
