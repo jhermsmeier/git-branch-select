@@ -94,8 +94,8 @@ exec( 'git branch --no-color --sort=-committerdate', function( error, stdout, st
       type: 'autocomplete',
       name: 'value',
       message: 'Select a branch:',
-      limit: Infinity,
-      choices: branches,
+      limit: process.stdout.rows - 3,
+      choices: results,
       suggest: suggest,
     })
 
