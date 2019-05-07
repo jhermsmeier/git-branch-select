@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 var exec = require( 'child_process' ).exec
-var cliCursor = require('cli-cursor')
+var cliCursor = require( 'cli-cursor' )
 var cmd = require( 'command-join' )
 var elements = require( 'prompts/lib/elements' )
 var Fuse = require( 'fuse.js' )
 var argv = process.argv.slice( 2 )
 
-// Catches ctrl+c & exit events
-process.on('SIGINT', exitHandler)
-process.on('exit', exitHandler)
-
+// Make sure the terminal cursor doesn't stay hidden
+// after the program exits
 function exitHandler() {
   cliCursor.show()
 }
+
+// Catches ctrl+c & exit events
+process.on( 'SIGINT', exitHandler )
+process.on( 'exit', exitHandler )
 
 function checkout( branch ) {
 
@@ -23,7 +25,7 @@ function checkout( branch ) {
     process.exit(1)
   }
 
-  exec( cmd([ 'git', 'checkout', branch ]), {
+  exec( cmd([ 'git', 'checkout', ( branch.upstream ? '' : '--track' ), branch.refName ]), {
     cwd: process.cwd(),
     env: process.env,
   }, function( error, stdout, stderr ) {
@@ -52,40 +54,51 @@ function checkout( branch ) {
   })
 }
 
-exec( 'git branch --no-color --sort=-committerdate', function( error, stdout, stderr ) {
+var branchFormat = '%(HEAD)|%(refname)|%(refname:lstrip=2)|%(upstream)|%(upstream:remotename)|%(upstream:remoteref)|%(push)'
 
-  var currentBranchIndex = 0
-  var lines = stdout.replace( /^\s+|\s+$/g, '' ).split( /\r?\n/g )
-    .filter( function( line ) {
-      return !/([^\/]+)\/HEAD\s+->/.test( line )
-    })
+exec( `git branch --list --all --no-color --sort=-committerdate --format='${branchFormat}'`, function( error, stdout, stderr ) {
+
+  var lines = stdout.trim().split( /\r?\n/g )
     .map( function( line, i ) {
-      line = line.replace( /^\s+|\s+$/g, '' )
-      // Strip the active branch indicator
-      if( /^\*\s+/.test( line ) ) {
-        line = line.replace( /^\*\s+/, '' )
-        currentBranchIndex = i
-      }
-      return line
+      var [ head, ref, refName, upstream, remoteName, remoteRef, push ] = line.trim().split( /\|/g )
+      return { head: head === '*', ref, refName, upstream, remoteName, remoteRef, push }
+    })
+    .filter( ( branch ) => {
+      return !/\/HEAD$/.test( branch.ref )
     })
 
-  // Put the current branch up top
+  // Put the current branch up top, so that simply hitting [Enter]
+  // won't make you accidentally change branches
+  var currentBranchIndex = lines.findIndex( branch => branch.head )
   lines.unshift( lines.splice( currentBranchIndex, 1 )[0] )
 
-  var branches = lines.map(( branch ) => {
-    return { value: branch, title: `  ${branch}` }
+  // De-duplicate remotes & locals
+  var branches = new Map()
+
+  lines.forEach(( branch ) => {
+    if( branches.has( branch.ref ) ) {
+      var stored = branches.get( branch.ref )
+      stored.remoteName = stored.remoteName || branch.remoteName
+    } else {
+      branches.set( branch.push || branch.ref, branch )
+    }
   })
 
-  var fuse = new Fuse( branches, {
+  // Materialize result list for search & prompt
+  var results = []
+  for( var [ ref, branch ] of branches ) {
+    results.push({ title: `  ${branch.refName}`, value: branch })
+  }
+
+  var fuse = new Fuse( results, {
     shouldSort: true,
     findAllMatches: true,
     minMatchCharLength: 1,
-    keys: [ 'value' ],
+    keys: [ 'title' ],
   })
 
   function suggest( input ) {
-    var results = input ? fuse.search( input ) : branches
-    return Promise.resolve( results )
+    return Promise.resolve( input ? fuse.search( input ) : results )
   }
 
   function prompt() {
