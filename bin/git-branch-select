@@ -25,7 +25,13 @@ function checkout( branch ) {
     process.exit(1)
   }
 
-  exec( cmd([ 'git', 'checkout' ].concat( branch.upstream ? [ '--track' ] : [], [ branch.refName ] )), {
+  var checkoutCmd = [ 'git', 'checkout' ]
+
+  !branch.upstream ?
+    checkoutCmd.push( '--track', branch.refName ) :
+    checkoutCmd.push( branch.refName )
+
+  exec( commandJoin( checkoutCmd ), {
     cwd: process.cwd(),
     env: process.env,
   }, function( error, stdout, stderr ) {
