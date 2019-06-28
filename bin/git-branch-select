@@ -56,7 +56,7 @@ function checkout( branch ) {
 
 var branchFormat = '%(HEAD)|%(refname)|%(refname:lstrip=2)|%(upstream)|%(upstream:remotename)|%(upstream:remoteref)|%(push)'
 
-exec( `git branch --list --all --no-color --sort=-committerdate --format='${branchFormat}'`, function( error, stdout, stderr ) {
+exec( `git branch --list --all --no-color --sort=-committerdate --format="${branchFormat}"`, function( error, stdout, stderr ) {
 
   var lines = stdout.trim().split( /\r?\n/g )
     .map( function( line, i ) {
