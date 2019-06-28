@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 var exec = require( 'child_process' ).exec
 var cliCursor = require( 'cli-cursor' )
-var cmd = require( 'command-join' )
+var { commandJoin } = require( 'command-join' )
 var elements = require( 'prompts/lib/elements' )
 var Fuse = require( 'fuse.js' )
 var argv = process.argv.slice( 2 )
@@ -38,7 +38,7 @@ function checkout( branch ) {
 
     // Print status after branch change manually,
     // as `git checkout` doesn't do color output
-    exec( cmd([ 'git', 'status', '-sb' ]), {
+    exec( commandJoin([ 'git', 'status', '-sb' ]), {
       cwd: process.cwd(),
       env: process.env,
     }, function( _, stdout, stderr ) {
