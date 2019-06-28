@@ -61,8 +61,9 @@ function checkout( branch ) {
 }
 
 var branchFormat = '%(HEAD)|%(refname)|%(refname:lstrip=2)|%(upstream)|%(upstream:remotename)|%(upstream:remoteref)|%(push)'
+var q = process.platform === 'win32' ? '"' : "'"
 
-exec( `git branch --list --all --no-color --sort=-committerdate --format="${branchFormat}"`, function( error, stdout, stderr ) {
+exec( `git branch --list --all --no-color --sort=-committerdate --format=${q}${branchFormat}${q}`, function( error, stdout, stderr ) {
 
   var lines = stdout.trim().split( /\r?\n/g )
     .map( function( line, i ) {
