@@ -6,6 +6,10 @@ var elements = require( 'prompts/lib/elements' )
 var Fuse = require( 'fuse.js' )
 var argv = process.argv.slice( 2 )
 
+// handle argument for local only branches
+var all = argv.indexOf('--local') < 0
+argv = argv.filter(a => a !== '--local')
+
 // Make sure the terminal cursor doesn't stay hidden
 // after the program exits
 function exitHandler() {
@@ -63,7 +67,7 @@ function checkout( branch ) {
 var branchFormat = '%(HEAD)|%(refname)|%(refname:lstrip=2)|%(upstream)|%(upstream:remotename)|%(upstream:remoteref)|%(push)'
 var q = process.platform === 'win32' ? '"' : "'"
 
-exec( `git branch --list --all --no-color --sort=-committerdate --format=${q}${branchFormat}${q}`, function( error, stdout, stderr ) {
+exec( `git branch --list ${ all ? '--all' : ''} --no-color --sort=-committerdate --format=${q}${branchFormat}${q}`, function( error, stdout, stderr ) {
 
   var lines = stdout.trim().split( /\r?\n/g )
     .map( function( line, i ) {
