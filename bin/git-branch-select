@@ -98,7 +98,7 @@ exec( `git branch --list ${ remoteBranches ? '--all' : ''} --no-color --sort=-co
   // Materialize result list for search & prompt
   var results = []
   for( var [ ref, branch ] of branches ) {
-    results.push({ title: `  ${branch.refName}`, value: branch })
+    results.push({ title: branch.refName, value: branch })
   }
 
   var fuse = new Fuse( results, {
