@@ -1,14 +1,8 @@
 #!/usr/bin/env node
-var exec = require( 'child_process' ).exec
+var fs = require( 'fs' )
+var path = require( 'path' )
 var cliCursor = require( 'cli-cursor' )
-var { commandJoin } = require( 'command-join' )
-var elements = require( 'prompts/lib/elements' )
-var Fuse = require( 'fuse.js' )
 var argv = process.argv.slice( 2 )
-
-// handle argument for local only branches
-var remoteBranches = argv.indexOf( '--local' ) < 0
-argv = argv.filter( a => a !== '--local' )
 
 // Make sure the terminal cursor doesn't stay hidden
 // after the program exits
@@ -16,127 +10,132 @@ function exitHandler() {
   cliCursor.show()
 }
 
-// Catches ctrl+c & exit events
+// Catch ctrl+c & exit events
 process.on( 'SIGINT', exitHandler )
 process.on( 'exit', exitHandler )
 
-function checkout( branch ) {
+const USAGE = `
+Usage: git branch-select [options] [search]
 
-  if(!branch) {
-    process.stdout.write( '\n' )
-    process.stdout.write( 'No such branch' )
-    process.stdout.write( '\n' )
-    process.exit(1)
-  }
+Options:
+  --version, -v        Show version
+  --help, -h           Show usage help
 
-  var checkoutCmd = [ 'git', 'checkout' ]
+  --local, -l          List local branches only
+  --remote, -r         List remote branches only
+  --tags, -t           List tags
+`
 
-  !branch.upstream && remoteBranches ?
-    checkoutCmd.push( '--track', branch.refName ) :
-    checkoutCmd.push( branch.refName )
-
-  exec( commandJoin( checkoutCmd ), {
-    cwd: process.cwd(),
-    env: process.env,
-  }, function( error, stdout, stderr ) {
-
-    // Only write out the most important part
-    process.stdout.write( '\n' )
-    process.stdout.write( stdout.toString().split( /\r?\n/g ).pop() )
-    process.stderr.write( stderr.toString().split( /\r?\n/g ).shift() )
-    process.stdout.write( '\n' )
-
-    // Print status after branch change manually,
-    // as `git checkout` doesn't do color output
-    exec( commandJoin([ 'git', 'status', '-sb' ]), {
-      cwd: process.cwd(),
-      env: process.env,
-    }, function( _, stdout, stderr ) {
-
-      process.stdout.write( '\n' )
-      process.stdout.write( stdout )
-      process.stderr.write( stderr )
-
-      process.exit( error ? error.code : 0 )
-
-    })
-
-  })
+if( argv.includes( '-v' ) || argv.includes( '--version' ) ) {
+  console.error( require( '../package.json' ).version )
+  process.exit( 0 )
 }
 
-var q = process.platform === 'win32' ? '"' : "'"
-var branchFormat = '%(HEAD)|%(refname)|%(refname:lstrip=2)|%(upstream)|%(upstream:remotename)|%(upstream:remoteref)|%(push)'
-var branchListCommand = `git branch --list ${ remoteBranches ? '--all' : '' } --no-color --sort=-committerdate --format=${q}${branchFormat}${q}`
+if( argv.includes( '-h' ) || argv.includes( '--help' ) ) {
+  console.error( USAGE )
+  process.exit( 0 )
+}
 
-exec( branchListCommand, function( error, stdout, stderr ) {
+const GIT_HEADS = path.join( '.git', 'refs', 'heads' )
+const GIT_REMOTES = path.join( '.git', 'refs', 'remotes' )
+const GIT_TAGS = path.join( '.git', 'refs', 'tags' )
 
-  var lines = stdout.trim().split( /\r?\n/g )
-    .filter( function( line, i ) { return !!line } )
-    .map( function( line, i ) {
-      var [ head, ref, refName, upstream, remoteName, remoteRef, push ] = line.trim().split( /\|/g )
-      return { head: head === '*', ref, refName, upstream, remoteName, remoteRef, push }
+function readHeads( basename, remote ) {
+
+  var dirname = path.join( process.cwd(), basename )
+
+  return fs.readdirSync( dirname )
+    .filter(( ref ) => ref != 'HEAD')
+    .map(( ref ) => {
+      var filename = path.join( dirname, ref )
+      return { remote, name: ref, commit: fs.readFileSync( filename, 'utf8' ).trim() }
     })
-    .filter( ( branch ) => {
-      return !/\/HEAD$/.test( branch.ref )
-    })
 
-  // Put the current branch up top, so that simply hitting [Enter]
-  // won't make you accidentally change branches
-  var currentBranchIndex = lines.findIndex( branch => branch.head )
-  if( ~currentBranchIndex ) {
-    lines.unshift( lines.splice( currentBranchIndex, 1 )[0] )
-  }
+}
 
-  // De-duplicate remotes & locals
-  var branches = new Map()
+function readRemotes() {
 
-  lines.forEach(( branch ) => {
-    if( branches.has( branch.ref ) ) {
-      var stored = branches.get( branch.ref )
-      stored.remoteName = stored.remoteName || branch.remoteName
-    } else {
-      branches.set( branch.push || branch.ref, branch )
-    }
+  var dirname = path.join( process.cwd(), GIT_REMOTES )
+  var remotes = []
+
+  fs.readdirSync( dirname ).forEach(( remote ) => {
+    var dirname = path.join( GIT_REMOTES, remote )
+    remotes.push.apply( remotes, readHeads( dirname, remote ) )
   })
 
-  // Materialize result list for search & prompt
-  var results = []
-  for( var [ ref, branch ] of branches ) {
-    results.push({ title: branch.refName, value: branch })
-  }
+  return remotes
 
-  var fuse = new Fuse( results, {
-    shouldSort: true,
-    findAllMatches: true,
-    minMatchCharLength: 1,
-    keys: [ 'title' ],
+}
+
+var refs = []
+
+if( argv.includes( '-l' ) || argv.includes( '--local' ) ) {
+  refs = readHeads( GIT_HEADS )
+} else if( argv.includes( '-r' ) || argv.includes( '--remote' ) ) {
+  refs = readRemotes( GIT_REMOTES )
+} else if( argv.includes( '-t' ) || argv.includes( '--tags' ) ) {
+  refs = readHeads( GIT_TAGS )
+} else {
+  var heads = readHeads( GIT_HEADS )
+  var remotes = readRemotes( GIT_REMOTES ).filter(( remote ) => {
+    return !heads.find(( head ) => head.name == remote.name)
   })
+  refs = heads.concat( remotes )
+}
 
-  function suggest( input ) {
-    return Promise.resolve( input ? fuse.search( input ) : results )
+var spawn = require( 'child_process' ).spawn
+var elements = require( 'prompts/lib/elements' )
+var Fuse = require( 'fuse.js' )
+
+var choices = refs.map(( ref ) => {
+  var title = ref.remote ? `${ref.remote} / ${ref.name}` : `${ref.name}`
+  return { title, value: ref }
+})
+
+var fuse = new Fuse( choices, {
+  shouldSort: true,
+  findAllMatches: true,
+  minMatchCharLength: 1,
+  keys: [ 'title' ],
+})
+
+function suggest( input ) {
+  return Promise.resolve( input ? fuse.search( input ) : choices )
+}
+
+var input = new elements.AutocompletePrompt({
+  type: 'autocomplete',
+  name: 'value',
+  message: 'Select a branch:',
+  limit: process.stdout.rows - 3,
+  choices: choices,
+  suggest: suggest,
+})
+
+var search = argv.filter( value => !value.startsWith( '-' ) ).join( ' ' )
+
+// Override initial input & re-render,
+// as there's no option to set the initial input value
+input.input = search || ''
+input.cursor = input.input.length
+input.complete( input.render )
+
+input.on( 'submit', ( ref ) => {
+
+  if( ref == null ) {
+    console.error( 'No such branch' )
+    process.exit( 1 )
   }
 
-  function prompt() {
+  var cmd = 'git'
+  var argv = ref.remote ?
+    [ 'checkout', '-b', ref.name, '--track', `${ref.remote}/${ref.name}` ] :
+    [ 'checkout', ref.name ]
 
-    var input = new elements.AutocompletePrompt({
-      type: 'autocomplete',
-      name: 'value',
-      message: 'Select a branch:',
-      limit: process.stdout.rows - 3,
-      choices: results,
-      suggest: suggest,
-    })
-
-    // Override initial input & re-render,
-    // as there's no option to set the initial input value
-    input.input = argv[0] || ''
-    input.cursor = input.input.length
-    input.complete( input.render )
-
-    input.on( 'submit', checkout )
-
-  }
-
-  prompt()
+  var git = spawn( cmd, argv, {
+    cwd: process.cwd(),
+    env: process.env,
+    stdio: 'inherit',
+  })
 
 })
