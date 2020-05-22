@@ -7,8 +7,8 @@ var Fuse = require( 'fuse.js' )
 var argv = process.argv.slice( 2 )
 
 // handle argument for local only branches
-var remoteBranches = argv.indexOf('--local') < 0
-argv = argv.filter(a => a !== '--local')
+var remoteBranches = argv.indexOf( '--local' ) < 0
+argv = argv.filter( a => a !== '--local' )
 
 // Make sure the terminal cursor doesn't stay hidden
 // after the program exits
@@ -66,7 +66,7 @@ function checkout( branch ) {
 
 var q = process.platform === 'win32' ? '"' : "'"
 var branchFormat = '%(HEAD)|%(refname)|%(refname:lstrip=2)|%(upstream)|%(upstream:remotename)|%(upstream:remoteref)|%(push)'
-var branchListCommand = `git branch --list ${ remoteBranches ? '--all' : ''} --no-color --sort=-committerdate --format=${q}${branchFormat}${q}`
+var branchListCommand = `git branch --list ${ remoteBranches ? '--all' : '' } --no-color --sort=-committerdate --format=${q}${branchFormat}${q}`
 
 exec( branchListCommand, function( error, stdout, stderr ) {
 
