@@ -14,9 +14,19 @@ $ npm install --global git-branch-select
 ## Usage
 
 ```sh
-$ git branch-select [search]
+$ git branch-select [options] [search]
 # Alias it in your .gitconfig for added convenience,
 # for example: bs = branch-select
+```
+
+```
+Options:
+  --version, -v        Show version
+  --help, -h           Show usage help
+
+  --local, -l          List local branches only
+  --remote, -r         List remote branches only
+  --tags, -t           List tags
 ```
 
 ```
