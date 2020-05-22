@@ -13,9 +13,8 @@
   "main": "index.js",
   "dependencies": {
     "cli-cursor": "^3.1.0",
-    "command-join": "^3.0.0",
-    "fuse.js": "^3.4.6",
-    "prompts": "^2.3.0"
+    "fuse.js": "^3.6.1",
+    "prompts": "^2.3.2"
   },
   "bin": {
     "git-branch-select": "bin/git-branch-select"
