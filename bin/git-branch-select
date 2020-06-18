@@ -36,9 +36,25 @@ if( argv.includes( '-h' ) || argv.includes( '--help' ) ) {
   process.exit( 0 )
 }
 
-const GIT_HEADS = path.join( '.git', 'refs', 'heads' )
-const GIT_REMOTES = path.join( '.git', 'refs', 'remotes' )
-const GIT_TAGS = path.join( '.git', 'refs', 'tags' )
+var REPO_PATH = '.git'
+
+try {
+  var stats = fs.lstatSync( REPO_PATH )
+  if( stats.isSymbolicLink() ) {
+    REPO_PATH = fs.readlinkSync( REPO_PATH, { encoding: 'utf8' })
+  } else if( stats.isFile() ) {
+    REPO_PATH = fs.readFileSync( REPO_PATH, { encoding: 'utf8' })
+      .split( /\r\n/g ).filter(( line ) => line.startsWith( 'gitdir:' ) )
+      .shift().replace( 'gitdir:', '' ).trim()
+  }
+} catch( error ) {
+  console.error( 'ERROR: Couldn\'t find git repository' )
+  process.exit( 1 )
+}
+
+const GIT_HEADS = path.join( REPO_PATH, 'refs', 'heads' )
+const GIT_REMOTES = path.join( REPO_PATH, 'refs', 'remotes' )
+const GIT_TAGS = path.join( REPO_PATH, 'refs', 'tags' )
 
 function readHeads( basename, remote ) {
 
