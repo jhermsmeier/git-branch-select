@@ -56,16 +56,32 @@ const GIT_HEADS = path.join( REPO_PATH, 'refs', 'heads' )
 const GIT_REMOTES = path.join( REPO_PATH, 'refs', 'remotes' )
 const GIT_TAGS = path.join( REPO_PATH, 'refs', 'tags' )
 
-function readHeads( basename, remote ) {
+function searchHeads(dirname, ref, remote) {
 
-  var dirname = path.join( process.cwd(), basename )
+  var heads = []
 
-  return fs.readdirSync( dirname )
-    .filter(( ref ) => ref != 'HEAD')
-    .map(( ref ) => {
-      var filename = path.join( dirname, ref )
-      return { remote, name: ref, commit: fs.readFileSync( filename, 'utf8' ).trim() }
-    })
+  var filename = path.join(dirname, ref)
+  if (fs.lstatSync(filename).isDirectory()) {
+    fs.readdirSync(filename).forEach((suffix) => {
+      let new_ref = path.join(ref, suffix)
+      heads.push(...searchHeads(dirname, new_ref, remote))
+    });
+  } else {
+    var filename = path.join(dirname, ref)
+    heads.push({ remote, name: ref, commit: fs.readFileSync(filename, 'utf8').trim() })
+  }
+
+  return heads
+
+}
+
+function readHeads(basename, remote) {
+
+  var dirname = path.join(process.cwd(), basename)
+
+  return fs.readdirSync(dirname)
+    .filter((ref) => ref != 'HEAD')
+    .flatMap((ref) => searchHeads(dirname, ref, remote))
 
 }
 
