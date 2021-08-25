@@ -13,7 +13,7 @@
   "main": "index.js",
   "dependencies": {
     "cli-cursor": "^3.1.0",
-    "fuse.js": "^3.6.1",
+    "fuse.js": "^6.4.6",
     "prompts": "^2.3.2"
   },
   "bin": {
