@@ -65,7 +65,7 @@ function searchHeads(dirname, ref, remote) {
   var filename = path.join(dirname, ref)
   if (fs.lstatSync(filename).isDirectory()) {
     fs.readdirSync(filename).forEach((suffix) => {
-      let new_ref = path.join(ref, suffix)
+      const new_ref = [ref, suffix].join('/');
       heads.push(...searchHeads(dirname, new_ref, remote))
     });
   } else {
