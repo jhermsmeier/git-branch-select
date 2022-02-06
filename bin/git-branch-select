@@ -134,7 +134,11 @@ var fuse = new Fuse( choices, {
 })
 
 function suggest( input ) {
-  return Promise.resolve( input ? fuse.search( input ) : choices )
+  if( input ) {
+    var results = fuse.search( input )
+    return results.map( result => result.item )
+  }
+  return choices
 }
 
 var input = new elements.AutocompletePrompt({
